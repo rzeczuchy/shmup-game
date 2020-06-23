@@ -142,6 +142,23 @@ class DrawableComponent extends GameComponent {
   }
 }
 
+class Label extends DrawableComponent {
+  constructor(text, position, font, color, align) {
+    super(position, new Point(0, 0), null);
+    this.text = text;
+    this.font = font;
+    this.color = color;
+    this.align = align;
+  }
+  draw(context) {
+    context.font = this.font;
+    context.fillStyle = this.color;
+    context.textAlign = this.align;
+    context.textBaseline = "top";
+    context.fillText(this.text, this.position.x, this.position.y);
+  }
+}
+
 class Input {
   constructor() {
     this.keyMappings = [];
@@ -159,11 +176,11 @@ class Input {
       (e) => {
         if (
           [
-            this.Keys.SPACE,
-            this.Keys.UP,
-            this.Keys.DOWN,
-            this.Keys.LEFT,
-            this.Keys.RIGHT,
+            this.keys.SPACE,
+            this.keys.UP,
+            this.keys.DOWN,
+            this.keys.LEFT,
+            this.keys.RIGHT,
           ].indexOf(e.keyCode) > -1
         ) {
           e.preventDefault();
@@ -172,14 +189,14 @@ class Input {
       false
     );
 
-    this.Keys = {
+    this.keys = {
       UP: 38,
       DOWN: 40,
       LEFT: 37,
       RIGHT: 39,
       SPACE: 32,
     };
-    Object.freeze(this.Keys);
+    Object.freeze(this.keys);
   }
   isKeyPressed(key) {
     return this.keyMappings[key];

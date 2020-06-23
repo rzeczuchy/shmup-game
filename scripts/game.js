@@ -7,6 +7,8 @@ let isRunning;
 const gameComponents = [];
 const input = new Input();
 let player;
+let score;
+let scoreLabel;
 
 // defining assets
 let playerTexture = new Image();
@@ -48,14 +50,14 @@ class Player extends DrawableComponent {
     this.position.y = clamp(this.position.y, topBound, bottomBound);
   }
   handleInput() {
-    if (input.isKeyPressed(input.Keys.UP)) {
+    if (input.isKeyPressed(input.keys.UP)) {
       this.delta.y -= this.speed;
-    } else if (input.isKeyPressed(input.Keys.DOWN)) {
+    } else if (input.isKeyPressed(input.keys.DOWN)) {
       this.delta.y += this.speed;
     }
-    if (input.isKeyPressed(input.Keys.LEFT)) {
+    if (input.isKeyPressed(input.keys.LEFT)) {
       this.delta.x -= this.speed;
-    } else if (input.isKeyPressed(input.Keys.RIGHT)) {
+    } else if (input.isKeyPressed(input.keys.RIGHT)) {
       this.delta.x += this.speed;
     }
   }
@@ -64,8 +66,17 @@ class Player extends DrawableComponent {
 const initialize = () => {
   playerTexture = new Image();
   playerTexture.src = "images/img1.png";
-  player = new Player(new Point(100, 100), new Point(100, 100), playerTexture);
+  player = new Player(new Point(100, 300), new Point(100, 100), playerTexture);
   gameComponents.push(player);
+  score = 0;
+  scoreLabel = new Label(
+    score,
+    new Point(20, 20),
+    "bold 26px Arial",
+    "white",
+    "left"
+  );
+  gameComponents.push(scoreLabel);
 
   isRunning = true;
   requestAnimationFrame(gameLoop);
