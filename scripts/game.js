@@ -2,8 +2,11 @@
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 context.imageSmoothingEnabled = false;
-let player;
+
+let isRunning;
+const gameComponents = [];
 const input = new Input();
+let player;
 
 // defining assets
 let playerTexture = new Image();
@@ -45,14 +48,14 @@ class Player extends DrawableComponent {
     this.position.y = clamp(this.position.y, topBound, bottomBound);
   }
   handleInput() {
-    if (input.isKeyPressed(Keys.UP)) {
+    if (input.isKeyPressed(input.Keys.UP)) {
       this.delta.y -= this.speed;
-    } else if (input.isKeyPressed(Keys.DOWN)) {
+    } else if (input.isKeyPressed(input.Keys.DOWN)) {
       this.delta.y += this.speed;
     }
-    if (input.isKeyPressed(Keys.LEFT)) {
+    if (input.isKeyPressed(input.Keys.LEFT)) {
       this.delta.x -= this.speed;
-    } else if (input.isKeyPressed(Keys.RIGHT)) {
+    } else if (input.isKeyPressed(input.Keys.RIGHT)) {
       this.delta.x += this.speed;
     }
   }

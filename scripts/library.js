@@ -1,6 +1,4 @@
 "use strict";
-let isRunning;
-const gameComponents = [];
 
 class Drawable {
   constructor() {}
@@ -153,32 +151,37 @@ class Input {
     this.keyUp = (e) => {
       this.keyMappings[e.keyCode] = false;
     };
+
     document.addEventListener("keydown", this.keyDown, false);
     document.addEventListener("keyup", this.keyUp, false);
     window.addEventListener(
       "keydown",
       (e) => {
         if (
-          [Keys.SPACE, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT].indexOf(
-            e.keyCode
-          ) > -1
+          [
+            this.Keys.SPACE,
+            this.Keys.UP,
+            this.Keys.DOWN,
+            this.Keys.LEFT,
+            this.Keys.RIGHT,
+          ].indexOf(e.keyCode) > -1
         ) {
           e.preventDefault();
         }
       },
       false
     );
+
+    this.Keys = {
+      UP: 38,
+      DOWN: 40,
+      LEFT: 37,
+      RIGHT: 39,
+      SPACE: 32,
+    };
+    Object.freeze(this.Keys);
   }
   isKeyPressed(key) {
     return this.keyMappings[key];
   }
 }
-
-const Keys = {
-  UP: 38,
-  DOWN: 40,
-  LEFT: 37,
-  RIGHT: 39,
-  SPACE: 32,
-};
-Object.freeze(Keys);
