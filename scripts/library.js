@@ -1,4 +1,6 @@
 "use strict";
+let isRunning;
+const gameComponents = [];
 
 class Drawable {
   constructor() {}
@@ -141,3 +143,42 @@ class DrawableComponent extends GameComponent {
     this.drawable.drawAt(context, this.position);
   }
 }
+
+class Input {
+  constructor() {
+    this.keyMappings = [];
+    this.keyDown = (e) => {
+      this.keyMappings[e.keyCode] = true;
+    };
+    this.keyUp = (e) => {
+      this.keyMappings[e.keyCode] = false;
+    };
+    document.addEventListener("keydown", this.keyDown, false);
+    document.addEventListener("keyup", this.keyUp, false);
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        if (
+          [Keys.SPACE, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT].indexOf(
+            e.keyCode
+          ) > -1
+        ) {
+          e.preventDefault();
+        }
+      },
+      false
+    );
+  }
+  isKeyPressed(key) {
+    return this.keyMappings[key];
+  }
+}
+
+const Keys = {
+  UP: 38,
+  DOWN: 40,
+  LEFT: 37,
+  RIGHT: 39,
+  SPACE: 32,
+};
+Object.freeze(Keys);

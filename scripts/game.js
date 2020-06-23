@@ -2,44 +2,8 @@
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 context.imageSmoothingEnabled = false;
-let isRunning;
-let gameComponents = [];
 let player;
-
-// handling input
-const keyMappings = [];
-const Keys = {
-  UP: 38,
-  DOWN: 40,
-  LEFT: 37,
-  RIGHT: 39,
-  SPACE: 32,
-};
-Object.freeze(Keys);
-
-document.addEventListener("keydown", keyDown, false);
-document.addEventListener("keyup", keyUp, false);
-window.addEventListener(
-  "keydown",
-  (e) => {
-    if (
-      [Keys.SPACE, Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT].indexOf(
-        e.keyCode
-      ) > -1
-    ) {
-      e.preventDefault();
-    }
-  },
-  false
-);
-
-function keyDown(e) {
-  keyMappings[e.keyCode] = true;
-}
-
-function keyUp(e) {
-  keyMappings[e.keyCode] = false;
-}
+const input = new Input();
 
 // defining assets
 let playerTexture = new Image();
@@ -81,14 +45,14 @@ class Player extends DrawableComponent {
     this.position.y = clamp(this.position.y, topBound, bottomBound);
   }
   handleInput() {
-    if (keyMappings[Keys.UP]) {
+    if (input.isKeyPressed(Keys.UP)) {
       this.delta.y -= this.speed;
-    } else if (keyMappings[Keys.DOWN]) {
+    } else if (input.isKeyPressed(Keys.DOWN)) {
       this.delta.y += this.speed;
     }
-    if (keyMappings[Keys.LEFT]) {
+    if (input.isKeyPressed(Keys.LEFT)) {
       this.delta.x -= this.speed;
-    } else if (keyMappings[Keys.RIGHT]) {
+    } else if (input.isKeyPressed(Keys.RIGHT)) {
       this.delta.x += this.speed;
     }
   }
