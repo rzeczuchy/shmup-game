@@ -3,6 +3,7 @@
 class Drawable {
   constructor() {}
   draw() {}
+  drawAt() {}
 }
 
 class Point extends Drawable {
@@ -16,6 +17,12 @@ class Point extends Drawable {
     context.beginPath();
     context.fillStyle = this.color;
     context.fillRect(this.x, this.y, 1, 1);
+    context.fill();
+  }
+  drawAt(context, position) {
+    context.beginPath();
+    context.fillStyle = this.color;
+    context.fillRect(position.x, position.y, 1, 1);
     context.fill();
   }
   static distance(a, b) {
@@ -33,14 +40,12 @@ class Rectangle extends Drawable {
     this.color = color;
   }
   draw(context) {
+    drawAt(context, this.position);
+  }
+  drawAt(context, position) {
     context.beginPath();
     context.fillStyle = this.color;
-    context.fillRect(
-      this.position.x,
-      this.position.y,
-      this.size.x,
-      this.size.y
-    );
+    context.fillRect(position.x, position.y, this.size.x, this.size.y);
     context.fill();
   }
   contains(point) {
@@ -76,9 +81,12 @@ class Circle extends Drawable {
     this.color = color;
   }
   draw(context) {
+    drawAt(context, this.position);
+  }
+  drawAt(context, position) {
     context.beginPath();
     context.fillStyle = this.color;
-    context.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+    context.arc(position.x, position.y, this.radius, 0, 2 * Math.PI);
     context.fill();
   }
   contains(circ, point) {
@@ -96,17 +104,20 @@ class Circle extends Drawable {
 }
 
 class Sprite extends Drawable {
-  constructor(position, image, size) {
+  constructor(image, position, size) {
     super();
-    this.position = position;
     this.image = image;
+    this.position = position;
     this.size = size;
   }
   draw(context) {
+    drawAt(context, this.position);
+  }
+  drawAt(context, position) {
     context.drawImage(
       this.image,
-      this.position.x,
-      this.position.y,
+      position.x,
+      position.y,
       this.size.x,
       this.size.y
     );
@@ -119,11 +130,13 @@ class GameComponent {
 }
 
 class DrawableComponent extends GameComponent {
-  constructor(drawable) {
+  constructor(position, size, drawable) {
     super();
+    this.position = position;
+    this.size = size;
     this.drawable = drawable;
   }
   draw(context) {
-    this.drawable.draw(context);
+    this.drawable.drawAt(context, this.position);
   }
 }
