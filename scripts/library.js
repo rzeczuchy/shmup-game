@@ -127,6 +127,7 @@ class Sprite extends Drawable {
 class GameComponent {
   constructor() {}
   update() {}
+  draw() {}
 }
 
 class DrawableComponent extends GameComponent {

@@ -56,8 +56,29 @@ class Player extends DrawableComponent {
     this.handleInput();
     this.position.x += this.delta.x;
     this.position.y += this.delta.y;
+    this.clampPosition();
     this.delta.x *= this.damping;
     this.delta.y *= this.damping;
+  }
+  clampPosition() {
+    const leftBound = 0;
+    const rightBound = canvas.width - this.size.x;
+    const topBound = 0;
+    const bottomBound = canvas.height - this.size.y;
+
+    if (this.position.x < leftBound && this.delta.x < 0) {
+      this.delta.x = 0;
+    } else if (this.position.x > rightBound && this.delta.x > 0) {
+      this.delta.x = 0;
+    }
+    if (this.position.y < topBound && this.delta.y < 0) {
+      this.delta.y = 0;
+    } else if (this.position.y > bottomBound && this.delta.y > 0) {
+      this.delta.y = 0;
+    }
+
+    this.position.x = clamp(this.position.x, leftBound, rightBound);
+    this.position.y = clamp(this.position.y, topBound, bottomBound);
   }
   handleInput() {
     if (keyMappings[Keys.UP]) {
@@ -75,8 +96,8 @@ class Player extends DrawableComponent {
 
 const initialize = () => {
   playerTexture = new Image();
-  playerTexture.src = "images/placeholder.png";
-  player = new Player(new Point(100, 100), new Point(50, 50), playerTexture);
+  playerTexture.src = "images/img1.png";
+  player = new Player(new Point(100, 100), new Point(100, 100), playerTexture);
   gameComponents.push(player);
 
   isRunning = true;
