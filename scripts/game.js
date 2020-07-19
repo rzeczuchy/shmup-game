@@ -20,6 +20,10 @@ class Player extends DrawableComponent {
     this.damping = 0.95;
     this.speed = 0.5;
     this.delta = new Point(0, -2);
+    this.roll = 0;
+    this.maxRoll = 14;
+    this.rollGain = 1.2;
+    this.rollLoss = 0.4;
   }
   update() {
     this.handleInput();
@@ -29,9 +33,23 @@ class Player extends DrawableComponent {
     this.delta.x *= this.damping;
     this.delta.y *= this.damping;
     this.floorDelta();
+    this.reduceRoll();
   }
-  draw(context) {
-    this.drawable.drawAtSize(context, this.position, this.size);
+  reduceRoll() {
+    if (this.roll > 0) {
+      this.roll -= this.rollLoss;
+    } else if (this.roll < 0) {
+      this.roll += this.rollLoss;
+    }
+  }
+  getXAxis() {
+    return this.position.x + this.getApparentWidth() * 0.5;
+  }
+  getApparentWidth() {
+    return this.size.x - this.getRelativeRoll();
+  }
+  getRelativeRoll() {
+    return Math.sqrt(Math.pow(this.roll, 2));
   }
   floorDelta() {
     let objectiveDeltaX = Math.sqrt(Math.pow(this.delta.x * 100, 2));
@@ -45,23 +63,21 @@ class Player extends DrawableComponent {
   }
   clampPosition() {
     const leftBound = 0;
-    const rightBound = canvas.width - this.size.x;
+    const rightBound = canvas.width;
     const topBound = 0;
     const bottomBound = canvas.height - this.size.y;
+    const pushOffForce = this.speed + 1.5;
 
-    if (this.position.x < leftBound && this.delta.x < 0) {
-      this.delta.x = 0;
-    } else if (this.position.x > rightBound && this.delta.x > 0) {
-      this.delta.x = 0;
+    if (this.position.x < leftBound) {
+      this.delta.x += this.speed * pushOffForce;
+    } else if (this.position.x + this.getApparentWidth() > rightBound) {
+      this.delta.x -= this.speed * pushOffForce;
     }
-    if (this.position.y < topBound && this.delta.y < 0) {
-      this.delta.y = 0;
-    } else if (this.position.y > bottomBound && this.delta.y > 0) {
-      this.delta.y = 0;
+    if (this.position.y < topBound) {
+      this.delta.y += this.speed * pushOffForce;
+    } else if (this.position.y > bottomBound) {
+      this.delta.y -= this.speed * pushOffForce;
     }
-
-    this.position.x = clamp(this.position.x, leftBound, rightBound);
-    this.position.y = clamp(this.position.y, topBound, bottomBound);
   }
   handleInput() {
     if (input.isKeyPressed(input.keys.UP)) {
@@ -71,9 +87,22 @@ class Player extends DrawableComponent {
     }
     if (input.isKeyPressed(input.keys.LEFT)) {
       this.delta.x -= this.speed;
+      if (this.roll > -this.maxRoll) {
+        this.roll -= this.rollGain;
+      }
     } else if (input.isKeyPressed(input.keys.RIGHT)) {
       this.delta.x += this.speed;
+      if (this.roll < this.maxRoll) {
+        this.roll += this.rollGain;
+      }
     }
+  }
+  draw(context) {
+    this.drawable.drawAtSize(
+      context,
+      this.position,
+      new Point(this.getApparentWidth(), this.size.y)
+    );
   }
 }
 
