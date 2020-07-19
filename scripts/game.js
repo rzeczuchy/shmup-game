@@ -28,6 +28,20 @@ class Player extends DrawableComponent {
     this.clampPosition();
     this.delta.x *= this.damping;
     this.delta.y *= this.damping;
+    this.floorDelta();
+  }
+  draw(context) {
+    this.drawable.drawAtSize(context, this.position, this.size);
+  }
+  floorDelta() {
+    let objectiveDeltaX = Math.sqrt(Math.pow(this.delta.x * 100, 2));
+    let objectiveDeltaY = Math.sqrt(Math.pow(this.delta.y * 100, 2));
+    if (objectiveDeltaX < 0.01) {
+      this.delta.x = 0;
+    }
+    if (objectiveDeltaY < 0.01) {
+      this.delta.y = 0;
+    }
   }
   clampPosition() {
     const leftBound = 0;
@@ -66,7 +80,7 @@ class Player extends DrawableComponent {
 const initialize = () => {
   playerTexture = new Image();
   playerTexture.src = "images/img1.png";
-  player = new Player(new Point(100, 300), new Point(100, 100), playerTexture);
+  player = new Player(new Point(100, 300), new Point(32, 32), playerTexture);
   gameComponents.push(player);
   score = 0;
   scoreLabel = new Label(

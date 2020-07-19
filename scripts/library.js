@@ -25,6 +25,9 @@ class Point extends Drawable {
     context.fillRect(position.x, position.y, 1, 1);
     context.fill();
   }
+  drawAtSize(context, position, size) {
+    this.drawAt(context, position);
+  }
   static distance(a, b) {
     let xDist = Math.pow(a.x - b.x, 2);
     let yDist = Math.pow(a.y - b.y, 2);
@@ -40,12 +43,15 @@ class Rectangle extends Drawable {
     this.color = color;
   }
   draw(context) {
-    drawAt(context, this.position);
+    this.drawAt(context, this.position);
   }
   drawAt(context, position) {
+    this.drawAtSize(context, position, this.size);
+  }
+  drawAtSize(context, position, size) {
     context.beginPath();
     context.fillStyle = this.color;
-    context.fillRect(position.x, position.y, this.size.x, this.size.y);
+    context.fillRect(position.x, position.y, size.x, size.y);
     context.fill();
   }
   contains(point) {
@@ -81,13 +87,16 @@ class Triangle extends Drawable {
     this.color = color;
   }
   draw(context) {
-    drawAt(context, this.position);
+    this.drawAt(context, this.position);
   }
   drawAt(context, position) {
+    this.drawAtSize(context, position, this.size);
+  }
+  drawAtSize(context, position, size) {
     context.beginPath();
-    context.moveTo(position.x + this.size.x / 2, position.y);
-    context.lineTo(position.x + this.size.x, position.y + this.size.y);
-    context.lineTo(position.x, position.y + this.size.y);
+    context.moveTo(position.x + size.x / 2, position.y);
+    context.lineTo(position.x + size.x, position.y + size.y);
+    context.lineTo(position.x, position.y + size.y);
     context.fillStyle = this.color;
     context.fill();
     context.closePath();
@@ -105,9 +114,12 @@ class Circle extends Drawable {
     drawAt(context, this.position);
   }
   drawAt(context, position) {
+    this.drawAtSize(context, position, this.radius);
+  }
+  drawAtSize(context, position, radius) {
     context.beginPath();
     context.fillStyle = this.color;
-    context.arc(position.x, position.y, this.radius, 0, 2 * Math.PI);
+    context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
     context.fill();
   }
   contains(circ, point) {
@@ -132,16 +144,13 @@ class Sprite extends Drawable {
     this.size = size;
   }
   draw(context) {
-    drawAt(context, this.position);
+    this.drawAt(context, this.position);
   }
   drawAt(context, position) {
-    context.drawImage(
-      this.image,
-      position.x,
-      position.y,
-      this.size.x,
-      this.size.y
-    );
+    this.drawAtSize(context, position, this.size);
+  }
+  drawAtSize(context, position, size) {
+    context.drawImage(this.image, position.x, position.y, size.x, size.y);
   }
 }
 
@@ -159,7 +168,7 @@ class DrawableComponent extends GameComponent {
     this.drawable = drawable;
   }
   draw(context) {
-    this.drawable.drawAt(context, this.position);
+    this.drawable.drawAtSize(context, this.position, this.size);
   }
 }
 
