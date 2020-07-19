@@ -16,7 +16,7 @@ playerTexture.src = "images/placeholder.png";
 
 class Player extends DrawableComponent {
   constructor(position, size, texture) {
-    super(position, size, new Sprite(texture, position, size));
+    super(position, size, new Triangle(position, size, "#30f"));
     this.damping = 0.95;
     this.speed = 0.5;
     this.delta = new Point(0, -2);

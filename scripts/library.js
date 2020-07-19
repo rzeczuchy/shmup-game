@@ -73,6 +73,27 @@ class Rectangle extends Drawable {
   }
 }
 
+class Triangle extends Drawable {
+  constructor(position, size, color) {
+    super();
+    this.position = position;
+    this.size = size;
+    this.color = color;
+  }
+  draw(context) {
+    drawAt(context, this.position);
+  }
+  drawAt(context, position) {
+    context.beginPath();
+    context.moveTo(position.x + this.size.x / 2, position.y);
+    context.lineTo(position.x + this.size.x, position.y + this.size.y);
+    context.lineTo(position.x, position.y + this.size.y);
+    context.fillStyle = this.color;
+    context.fill();
+    context.closePath();
+  }
+}
+
 class Circle extends Drawable {
   constructor(position, radius, color) {
     super();
