@@ -240,6 +240,9 @@ class Input {
       LEFT: 37,
       RIGHT: 39,
       SPACE: 32,
+      Z: 90,
+      X: 88,
+      C: 67,
     };
     Object.freeze(this.keys);
   }

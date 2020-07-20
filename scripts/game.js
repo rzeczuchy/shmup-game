@@ -4,11 +4,11 @@ const context = canvas.getContext("2d");
 context.imageSmoothingEnabled = false;
 
 let isRunning;
-const bgColor = "#064462";
 const mainColor = "#00acff";
 const gameComponents = [];
 const input = new Input();
 const particleEngine = new ParticleEngine();
+const bullets = new ParticleEngine();
 let player;
 let score;
 let scoreLabel;
@@ -32,6 +32,8 @@ class Player extends DrawableComponent {
     this.maxRoll = 14;
     this.rollGain = 1.2;
     this.rollLoss = 0.6;
+    this.fireRate = 0.6;
+    this.fireCooldown = 0;
   }
   update() {
     this.handleInput();
@@ -42,6 +44,7 @@ class Player extends DrawableComponent {
     this.delta.y *= this.damping;
     this.floorDelta();
     this.reduceRoll();
+    this.coolDownGun();
   }
   reduceRoll() {
     if (this.roll > 0) {
@@ -109,6 +112,44 @@ class Player extends DrawableComponent {
         this.roll += this.rollGain;
       }
     }
+    if (input.isKeyPressed(input.keys.Z)) {
+      this.processShooting();
+    }
+  }
+  processShooting() {
+    if (this.fireCooldown <= 0) {
+      this.shoot();
+      this.fireCooldown = this.fireRate;
+    }
+  }
+  shoot() {
+    const bulletSize = new Point(3, 20);
+
+    bullets.particles.push(
+      new Bullet(
+        new Point(
+          this.position.x + this.size.x / 2 + bulletSize.x / 2,
+          this.position.y - bulletSize.y
+        ),
+        bulletSize,
+        new Point(0, -1),
+        10
+      )
+    );
+    bullets.particles.push(
+      new Bullet(
+        new Point(
+          this.position.x + this.size.x / 2 - bulletSize.x,
+          this.position.y - bulletSize.y
+        ),
+        bulletSize,
+        new Point(0, -1),
+        10
+      )
+    );
+  }
+  coolDownGun() {
+    this.fireCooldown -= 0.1;
   }
   draw(context) {
     this.drawable.drawAtSizeColor(
@@ -116,6 +157,31 @@ class Player extends DrawableComponent {
       this.position,
       new Point(this.getApparentWidth(), this.size.y),
       this.getApparentColor()
+    );
+  }
+}
+
+class Bullet extends Particle {
+  constructor(position, size, direction, speed) {
+    const color = mainColor;
+    const drawable = new Rectangle(position, size, color);
+    const lifespan = 100;
+    super(position, size, drawable, lifespan);
+    this.direction = direction;
+    this.speed = speed;
+    this.color = color;
+  }
+  update() {
+    super.update();
+    this.position.x += this.direction.x * this.speed;
+    this.position.y += this.direction.y * this.speed;
+  }
+  draw(context) {
+    this.drawable.drawAtSizeColor(
+      context,
+      this.position,
+      this.size,
+      this.color
     );
   }
 }
@@ -171,6 +237,7 @@ class StarSpawner extends GameComponent {
 
 const initialize = () => {
   gameComponents.push(particleEngine);
+  gameComponents.push(bullets);
   player = new Player();
   gameComponents.push(player);
   score = 0;
@@ -223,6 +290,7 @@ const removeDead = (array) => {
 };
 
 const clearContext = () => {
+  const bgColor = shadeColor(mainColor, -50);
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.beginPath();
   context.rect(0, 0, canvas.width, canvas.height);
