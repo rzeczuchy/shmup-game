@@ -4,6 +4,7 @@ const context = canvas.getContext("2d");
 context.imageSmoothingEnabled = false;
 
 let isRunning;
+const mainColor = "#00acff";
 const gameComponents = [];
 const input = new Input();
 const particleEngine = new ParticleEngine();
@@ -21,7 +22,7 @@ class Player extends DrawableComponent {
   constructor() {
     const startingPos = new Point(104, 240);
     const size = new Point(32, 32);
-    const color = "#8f6fb2";
+    const color = mainColor;
     const drawable = new Triangle(startingPos, size, color);
     super(startingPos, size, drawable);
     this.color = color;
@@ -122,16 +123,21 @@ class Player extends DrawableComponent {
 
 class Star extends Particle {
   constructor() {
-    const position = new Point(10, 10);
-    const size = new Point(10, 10);
-    const color = "#ffffff";
+    const thickness = randomNumber(1, 2);
+    const speed = randomNumber(7, 20);
+    const size = new Point(thickness, speed);
+    const position = new Point(randomNumber(0, canvas.width), -size.y);
+    const brightness = randomNumber(0, 100);
+    const color = shadeColor(mainColor, brightness);
     const drawable = new Rectangle(position, size, color);
     const lifespan = 100;
     super(position, size, drawable, lifespan);
+    this.speed = speed;
+    this.color = color;
   }
   update() {
     super.update();
-    this.position.y++;
+    this.position.y += this.speed;
   }
   draw(context) {
     this.drawable.drawAtSizeColor(
@@ -146,12 +152,17 @@ class Star extends Particle {
 class StarSpawner extends GameComponent {
   constructor() {
     super();
-    this.spawnDelay = 10;
+    this.spawnDelay = 2;
     this.time = 0;
+    this.minSpawned = 1;
+    this.maxSpawned = 2;
   }
   update() {
     if (this.time >= this.spawnDelay) {
-      particleEngine.particles.push(new Star());
+      const spawned = randomNumber(this.minSpawned, this.maxSpawned);
+      for (let i = 0; i < spawned; i++) {
+        particleEngine.particles.push(new Star());
+      }
       this.time = 0;
     } else {
       this.time++;
@@ -170,7 +181,7 @@ const initialize = () => {
     score,
     new Point(20, 20),
     "bold 26px Arial",
-    "white",
+    mainColor,
     "left"
   );
   gameComponents.push(scoreLabel);
