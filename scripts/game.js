@@ -267,7 +267,7 @@ class Bullet extends Particle {
 class Star extends Particle {
   constructor() {
     const thickness = randomNumber(1, 2);
-    const speed = randomFloat(7, 20) + score / 10000;
+    const speed = randomFloat(7, 20) + score * 0.0001;
     const size = new Point(thickness, speed);
     const position = new Point(randomNumber(0, canvas.width), -size.y);
     const brightness = randomNumber(0, 100);
@@ -294,7 +294,7 @@ class Star extends Particle {
 
 class Asteroid extends Particle {
   constructor() {
-    const speed = randomFloat(1, 3) + score / 10000;
+    const speed = randomFloat(1, 2) + score * 0.0001;
     const dimension = randomNumber(20, 50);
     const size = new Point(dimension, dimension);
     const margin = dimension;
@@ -325,10 +325,10 @@ class Asteroid extends Particle {
   getHit() {
     if (!this.isDead()) {
       if (this.health > 1) {
-        score += 10;
+        scoring.increaseScore(10);
         this.health--;
       } else {
-        score += 100;
+        scoring.increaseScore(100);
         super.remove();
       }
     }
@@ -408,6 +408,9 @@ class Scoring extends GameComponent {
   }
   update() {
     this.updateScoreDisplay();
+  }
+  increaseScore(value) {
+    score += value;
   }
   updateScoreDisplay() {
     scoreLabel.text = score;
