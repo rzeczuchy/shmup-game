@@ -15,8 +15,6 @@ let scoreLabel;
 let starSpawner;
 
 // defining assets
-let playerTexture = new Image();
-playerTexture.src = "images/placeholder.png";
 
 // defining custom components
 class Player extends DrawableComponent {
@@ -173,8 +171,6 @@ class StarSpawner extends GameComponent {
 
 const initialize = () => {
   gameComponents.push(particleEngine);
-  playerTexture = new Image();
-  playerTexture.src = "images/img1.png";
   player = new Player();
   gameComponents.push(player);
   score = 0;
