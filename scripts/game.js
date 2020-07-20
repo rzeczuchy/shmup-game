@@ -15,15 +15,16 @@ let playerTexture = new Image();
 playerTexture.src = "images/placeholder.png";
 
 class Player extends DrawableComponent {
-  constructor(position, size, texture) {
-    super(position, size, new Triangle(position, size, "#30f"));
+  constructor(position, size, color) {
+    super(position, size, new Triangle(position, size, color));
+    this.color = color;
     this.damping = 0.95;
-    this.speed = 0.5;
+    this.speed = 0.4;
     this.delta = new Point(0, -2);
     this.roll = 0;
     this.maxRoll = 14;
     this.rollGain = 1.2;
-    this.rollLoss = 0.4;
+    this.rollLoss = 0.6;
   }
   update() {
     this.handleInput();
@@ -50,6 +51,9 @@ class Player extends DrawableComponent {
   }
   getRelativeRoll() {
     return Math.sqrt(Math.pow(this.roll, 2));
+  }
+  getApparentColor() {
+    return shadeColor(this.color, this.roll * 2.5);
   }
   floorDelta() {
     let objectiveDeltaX = Math.sqrt(Math.pow(this.delta.x * 100, 2));
@@ -98,10 +102,11 @@ class Player extends DrawableComponent {
     }
   }
   draw(context) {
-    this.drawable.drawAtSize(
+    this.drawable.drawAtSizeColor(
       context,
       this.position,
-      new Point(this.getApparentWidth(), this.size.y)
+      new Point(this.getApparentWidth(), this.size.y),
+      this.getApparentColor()
     );
   }
 }
@@ -109,7 +114,7 @@ class Player extends DrawableComponent {
 const initialize = () => {
   playerTexture = new Image();
   playerTexture.src = "images/img1.png";
-  player = new Player(new Point(100, 300), new Point(32, 32), playerTexture);
+  player = new Player(new Point(100, 300), new Point(32, 32), "#03a345");
   gameComponents.push(player);
   score = 0;
   scoreLabel = new Label(
@@ -168,6 +173,28 @@ const clamp = (number, min, max) => {
 
 const randomNumber = (min, max) => {
   return Math.floor(Math.random() * (+max + 1 - +min) + +min);
+};
+
+// shadeColor function is from this answer on StackOverflow:
+// https://stackoverflow.com/a/13532993/13352934
+const shadeColor = (color, percent) => {
+  var R = parseInt(color.substring(1, 3), 16);
+  var G = parseInt(color.substring(3, 5), 16);
+  var B = parseInt(color.substring(5, 7), 16);
+
+  R = parseInt((R * (100 + percent)) / 100);
+  G = parseInt((G * (100 + percent)) / 100);
+  B = parseInt((B * (100 + percent)) / 100);
+
+  R = R < 255 ? R : 255;
+  G = G < 255 ? G : 255;
+  B = B < 255 ? B : 255;
+
+  var RR = R.toString(16).length == 1 ? "0" + R.toString(16) : R.toString(16);
+  var GG = G.toString(16).length == 1 ? "0" + G.toString(16) : G.toString(16);
+  var BB = B.toString(16).length == 1 ? "0" + B.toString(16) : B.toString(16);
+
+  return "#" + RR + GG + BB;
 };
 
 initialize();

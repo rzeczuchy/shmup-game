@@ -28,6 +28,9 @@ class Point extends Drawable {
   drawAtSize(context, position, size) {
     this.drawAt(context, position);
   }
+  drawAtSizeColor(context, position, size, color) {
+    this.drawAtColor(context, position, color);
+  }
   static distance(a, b) {
     let xDist = Math.pow(a.x - b.x, 2);
     let yDist = Math.pow(a.y - b.y, 2);
@@ -49,8 +52,11 @@ class Rectangle extends Drawable {
     this.drawAtSize(context, position, this.size);
   }
   drawAtSize(context, position, size) {
+    this.drawAtSizeColor(context, position, size, this.color);
+  }
+  drawAtSizeColor(context, position, size, color) {
     context.beginPath();
-    context.fillStyle = this.color;
+    context.fillStyle = color;
     context.fillRect(position.x, position.y, size.x, size.y);
     context.fill();
   }
@@ -93,11 +99,14 @@ class Triangle extends Drawable {
     this.drawAtSize(context, position, this.size);
   }
   drawAtSize(context, position, size) {
+    this.drawAtSizeColor(context, position, size, this.color);
+  }
+  drawAtSizeColor(context, position, size, color) {
     context.beginPath();
     context.moveTo(position.x + size.x / 2, position.y);
     context.lineTo(position.x + size.x, position.y + size.y);
     context.lineTo(position.x, position.y + size.y);
-    context.fillStyle = this.color;
+    context.fillStyle = color;
     context.fill();
     context.closePath();
   }
@@ -117,8 +126,11 @@ class Circle extends Drawable {
     this.drawAtSize(context, position, this.radius);
   }
   drawAtSize(context, position, radius) {
+    this.drawAtSizeColor(context, position, radius, this.color);
+  }
+  drawAtSizeColor(context, position, radius) {
     context.beginPath();
-    context.fillStyle = this.color;
+    context.fillStyle = color;
     context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
     context.fill();
   }
@@ -151,6 +163,9 @@ class Sprite extends Drawable {
   }
   drawAtSize(context, position, size) {
     context.drawImage(this.image, position.x, position.y, size.x, size.y);
+  }
+  drawAtSizeColor(context, position, size, color) {
+    this.drawAtSize(context, position, size);
   }
 }
 
