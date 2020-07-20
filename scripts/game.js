@@ -6,6 +6,7 @@ context.imageSmoothingEnabled = false;
 let isRunning;
 const gameComponents = [];
 const input = new Input();
+const particles = new ParticleEngine();
 let player;
 let score;
 let scoreLabel;
@@ -14,6 +15,7 @@ let scoreLabel;
 let playerTexture = new Image();
 playerTexture.src = "images/placeholder.png";
 
+// defining custom components
 class Player extends DrawableComponent {
   constructor(position, size, color) {
     super(position, size, new Triangle(position, size, color));
@@ -53,7 +55,9 @@ class Player extends DrawableComponent {
     return Math.sqrt(Math.pow(this.roll, 2));
   }
   getApparentColor() {
-    return shadeColor(this.color, this.roll * 2.5);
+    const flipLightDir = false;
+    const rollFactor = (flipLightDir ? this.roll : -this.roll) * 2.3;
+    return shadeColor(this.color, rollFactor);
   }
   floorDelta() {
     let objectiveDeltaX = Math.sqrt(Math.pow(this.delta.x * 100, 2));

@@ -172,7 +172,7 @@ class Sprite extends Drawable {
 class GameComponent {
   constructor() {}
   update() {}
-  draw() {}
+  draw(context) {}
 }
 
 class DrawableComponent extends GameComponent {
@@ -245,5 +245,40 @@ class Input {
   }
   isKeyPressed(key) {
     return this.keyMappings[key];
+  }
+}
+
+class Particle extends DrawableComponent {
+  constructor(position, size, drawable, lifespan, action) {
+    super(position, size, drawable);
+    this.life = 0;
+    this.lifespan = lifespan;
+    this.action = action;
+  }
+  update() {
+    this.life++;
+    this.action();
+  }
+}
+
+class ParticleEngine extends GameComponent {
+  constructor() {
+    super();
+    this.particles = [];
+  }
+  update() {
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const particle = this.particles[i];
+      if (particle.life >= lifespan) {
+        this.particles.splice(i, 1);
+      } else {
+        particle.update();
+      }
+    }
+  }
+  draw(context) {
+    for (let i = 0; i < this.particles.length; i++) {
+      this.particles[i].draw(context);
+    }
   }
 }
