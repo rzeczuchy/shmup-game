@@ -4,6 +4,7 @@ const context = canvas.getContext("2d");
 context.imageSmoothingEnabled = false;
 
 let isRunning;
+const bgColor = "#064462";
 const mainColor = "#00acff";
 const gameComponents = [];
 const input = new Input();
@@ -80,17 +81,17 @@ class Player extends DrawableComponent {
     const rightBound = canvas.width;
     const topBound = 0;
     const bottomBound = canvas.height - this.size.y;
-    const pushOffForce = this.speed + 1.5;
+    const pushOffForce = this.speed + 1.2;
 
     if (this.position.x < leftBound) {
-      this.delta.x += this.speed * pushOffForce;
+      this.delta.x += pushOffForce;
     } else if (this.position.x + this.getApparentWidth() > rightBound) {
-      this.delta.x -= this.speed * pushOffForce;
+      this.delta.x -= pushOffForce;
     }
     if (this.position.y < topBound) {
-      this.delta.y += this.speed * pushOffForce;
+      this.delta.y += pushOffForce;
     } else if (this.position.y > bottomBound) {
-      this.delta.y -= this.speed * pushOffForce;
+      this.delta.y -= pushOffForce;
     }
   }
   handleInput() {
@@ -227,6 +228,10 @@ const removeDead = (array) => {
 
 const clearContext = () => {
   context.clearRect(0, 0, canvas.width, canvas.height);
+  context.beginPath();
+  context.rect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = bgColor;
+  context.fill();
 };
 
 const clamp = (number, min, max) => {
