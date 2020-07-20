@@ -39,6 +39,8 @@ class Player extends DrawableComponent {
     this.fireRate = 0.6;
     this.fireCooldown = 0;
     this.lives = 3;
+    this.hitDelay = 20;
+    this.hitCooldown = 10;
   }
   update() {
     this.handleInput();
@@ -50,6 +52,7 @@ class Player extends DrawableComponent {
     this.floorDelta();
     this.reduceRoll();
     this.coolDownGun();
+    this.coolDownHit();
   }
   reduceRoll() {
     if (this.roll > 0) {
@@ -68,9 +71,16 @@ class Player extends DrawableComponent {
     return Math.sqrt(Math.pow(this.roll, 2));
   }
   getApparentColor() {
+    if (this.hitCooldown > 0) {
+      return this.blink();
+    }
     const flipLightDir = false;
     const rollFactor = (flipLightDir ? this.roll : -this.roll) * 2.3;
     return shadeColor(this.color, rollFactor);
+  }
+  blink() {
+    const blink = 40;
+    return shadeColor(mainColor, randomNumber(-blink, blink));
   }
   floorDelta() {
     let objectiveDeltaX = Math.sqrt(Math.pow(this.delta.x * 100, 2));
@@ -154,7 +164,20 @@ class Player extends DrawableComponent {
     );
   }
   coolDownGun() {
-    this.fireCooldown -= 0.1;
+    if (this.fireCooldown > 0) {
+      this.fireCooldown -= 0.1;
+    }
+  }
+  getHit() {
+    if (this.hitCooldown <= 0) {
+      console.log("player got hit");
+      this.hitCooldown = this.hitDelay;
+    }
+  }
+  coolDownHit() {
+    if (this.hitCooldown > 0) {
+      this.hitCooldown -= 0.1;
+    }
   }
   draw(context) {
     this.drawable.drawAtSizeColor(
