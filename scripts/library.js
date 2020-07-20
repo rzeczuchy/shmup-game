@@ -249,15 +249,13 @@ class Input {
 }
 
 class Particle extends DrawableComponent {
-  constructor(position, size, drawable, lifespan, action) {
+  constructor(position, size, drawable, lifespan) {
     super(position, size, drawable);
     this.life = 0;
     this.lifespan = lifespan;
-    this.action = action;
   }
   update() {
     this.life++;
-    this.action();
   }
 }
 
@@ -269,7 +267,7 @@ class ParticleEngine extends GameComponent {
   update() {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
-      if (particle.life >= lifespan) {
+      if (particle.life >= particle.lifespan) {
         this.particles.splice(i, 1);
       } else {
         particle.update();

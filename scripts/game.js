@@ -6,10 +6,11 @@ context.imageSmoothingEnabled = false;
 let isRunning;
 const gameComponents = [];
 const input = new Input();
-const particles = new ParticleEngine();
+const particleEngine = new ParticleEngine();
 let player;
 let score;
 let scoreLabel;
+let starSpawner;
 
 // defining assets
 let playerTexture = new Image();
@@ -17,8 +18,12 @@ playerTexture.src = "images/placeholder.png";
 
 // defining custom components
 class Player extends DrawableComponent {
-  constructor(position, size, color) {
-    super(position, size, new Triangle(position, size, color));
+  constructor() {
+    const startingPos = new Point(104, 240);
+    const size = new Point(32, 32);
+    const color = "#8f6fb2";
+    const drawable = new Triangle(startingPos, size, color);
+    super(startingPos, size, drawable);
     this.color = color;
     this.damping = 0.95;
     this.speed = 0.4;
@@ -115,10 +120,50 @@ class Player extends DrawableComponent {
   }
 }
 
+class Star extends Particle {
+  constructor() {
+    const position = new Point(10, 10);
+    const size = new Point(10, 10);
+    const color = "#ffffff";
+    const drawable = new Rectangle(position, size, color);
+    const lifespan = 100;
+    super(position, size, drawable, lifespan);
+  }
+  update() {
+    super.update();
+    this.position.y++;
+  }
+  draw(context) {
+    this.drawable.drawAtSizeColor(
+      context,
+      this.position,
+      this.size,
+      this.color
+    );
+  }
+}
+
+class StarSpawner extends GameComponent {
+  constructor() {
+    super();
+    this.spawnDelay = 10;
+    this.time = 0;
+  }
+  update() {
+    if (this.time >= this.spawnDelay) {
+      particleEngine.particles.push(new Star());
+      this.time = 0;
+    } else {
+      this.time++;
+    }
+  }
+}
+
 const initialize = () => {
+  gameComponents.push(particleEngine);
   playerTexture = new Image();
   playerTexture.src = "images/img1.png";
-  player = new Player(new Point(100, 300), new Point(32, 32), "#03a345");
+  player = new Player();
   gameComponents.push(player);
   score = 0;
   scoreLabel = new Label(
@@ -129,6 +174,8 @@ const initialize = () => {
     "left"
   );
   gameComponents.push(scoreLabel);
+  starSpawner = new StarSpawner();
+  gameComponents.push(starSpawner);
 
   isRunning = true;
   requestAnimationFrame(gameLoop);
