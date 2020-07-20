@@ -4,30 +4,30 @@ const context = canvas.getContext("2d");
 context.imageSmoothingEnabled = false;
 
 let isRunning;
-const mainColor = "#00acff";
-const bgColor = "#05364e";
 const gameComponents = [];
 const input = new Input();
-const stars = new ParticleEngine();
+const particles = new ParticleEngine();
 const bullets = new ParticleEngine();
 const asteroids = new ParticleEngine();
 let player;
 let lifeDisplay;
 let score;
 let scoreLabel;
+let scoring;
 let starSpawner;
 let asteroidSpawner;
+let collisions;
 
 // defining assets
 
 // defining custom components
 class Player extends DrawableComponent {
   constructor() {
-    const startingPos = new Point(104, 240);
+    const position = new Point(104, 240);
     const size = new Point(32, 32);
     const color = mainColor;
-    const drawable = new Triangle(startingPos, size, color);
-    super(startingPos, size, drawable);
+    const drawable = new Triangle(position, size, color);
+    super(position, size, drawable);
     this.color = color;
     this.damping = 0.95;
     this.speed = 0.4;
@@ -39,8 +39,13 @@ class Player extends DrawableComponent {
     this.fireRate = 0.6;
     this.fireCooldown = 0;
     this.lives = 3;
-    this.hitDelay = 20;
+    this.hitDelay = 10;
     this.hitCooldown = 10;
+    this.collisionRect = new Rectangle(
+      new Point(position.x - size.x / 2, position.y - size.y / 2),
+      new Point(size.x, size.y - 12),
+      "red"
+    );
   }
   update() {
     this.handleInput();
@@ -53,6 +58,23 @@ class Player extends DrawableComponent {
     this.reduceRoll();
     this.coolDownGun();
     this.coolDownHit();
+    this.setCollisionRectPosition();
+  }
+  setCollisionRectPosition() {
+    const shipCenter = new Point(
+      this.position.x + this.getApparentWidth() / 2,
+      this.position.y + this.size.y / 2
+    );
+    const rectCenter = new Point(
+      this.collisionRect.size.x / 2,
+      this.collisionRect.size.y / 2
+    );
+    const position = new Point(
+      shipCenter.x - rectCenter.x,
+      shipCenter.y - rectCenter.y + 6
+    );
+    this.collisionRect.position = position;
+    this.collisionRect.size.x = this.getApparentWidth() - 12;
   }
   reduceRoll() {
     if (this.roll > 0) {
@@ -76,11 +98,11 @@ class Player extends DrawableComponent {
     }
     const flipLightDir = false;
     const rollFactor = (flipLightDir ? this.roll : -this.roll) * 2.3;
-    return shadeColor(this.color, rollFactor);
+    return shadeColor(mainColor(), rollFactor);
   }
   blink() {
     const blink = 40;
-    return shadeColor(mainColor, randomNumber(-blink, blink));
+    return shadeColor(mainColor(), randomNumber(-blink, blink));
   }
   floorDelta() {
     let objectiveDeltaX = Math.sqrt(Math.pow(this.delta.x * 100, 2));
@@ -170,8 +192,15 @@ class Player extends DrawableComponent {
   }
   getHit() {
     if (this.hitCooldown <= 0) {
-      console.log("player got hit");
+      this.loseLife();
       this.hitCooldown = this.hitDelay;
+    }
+  }
+  loseLife() {
+    if (this.lives > 0) {
+      this.lives--;
+    } else {
+      console.log("game lost!");
     }
   }
   coolDownHit() {
@@ -194,7 +223,10 @@ class PlayerLifeDisplay extends GameComponent {
     super();
     const position = new Point(20, 50);
     this.position = position;
-    this.lifeSymbol = new Triangle(position, new Point(0, 0), mainColor);
+    this.lifeSymbol = new Triangle(position, new Point(0, 0), mainColor());
+  }
+  update() {
+    this.lifeSymbol.color = mainColor();
   }
   draw(context) {
     for (let i = 0; i < player.lives; i++) {
@@ -209,7 +241,7 @@ class PlayerLifeDisplay extends GameComponent {
 
 class Bullet extends Particle {
   constructor(position, size, direction, speed) {
-    const color = mainColor;
+    const color = mainColor();
     const drawable = new Rectangle(position, size, color);
     const lifespan = 100;
     super(position, size, drawable, lifespan);
@@ -235,11 +267,11 @@ class Bullet extends Particle {
 class Star extends Particle {
   constructor() {
     const thickness = randomNumber(1, 2);
-    const speed = randomNumber(7, 20);
+    const speed = randomFloat(7, 20) + score / 10000;
     const size = new Point(thickness, speed);
     const position = new Point(randomNumber(0, canvas.width), -size.y);
     const brightness = randomNumber(0, 100);
-    const color = shadeColor(mainColor, brightness);
+    const color = shadeColor(mainColor(), brightness);
     const drawable = new Rectangle(position, size, color);
     const lifespan = 100;
     super(position, size, drawable, lifespan);
@@ -262,10 +294,15 @@ class Star extends Particle {
 
 class Asteroid extends Particle {
   constructor() {
-    const speed = randomFloat(1, 3);
-    const size = new Point(randomNumber(20, 40), randomNumber(20, 40));
-    const position = new Point(randomNumber(0, canvas.width), -size.y);
-    const color = mainColor;
+    const speed = randomFloat(1, 3) + score / 10000;
+    const dimension = randomNumber(20, 50);
+    const size = new Point(dimension, dimension);
+    const margin = dimension;
+    const position = new Point(
+      randomNumber(margin, canvas.width - margin),
+      -size.y
+    );
+    const color = mainColor();
     const drawable = new Circle(position, size, color);
     const lifespan = 340 / speed;
     super(position, size, drawable, lifespan);
@@ -273,10 +310,28 @@ class Asteroid extends Particle {
     this.color = color;
     this.face = "'w'";
     this.faceSize = this.size.x * 0.5;
+    this.health = 5;
+    this.collisionRect = new Rectangle(
+      new Point(position.x - size.x / 2, position.y - size.y / 2),
+      size,
+      "red"
+    );
   }
   update() {
     super.update();
     this.position.y += this.speed;
+    this.collisionRect.position.y += this.speed;
+  }
+  getHit() {
+    if (!this.isDead()) {
+      if (this.health > 1) {
+        score += 10;
+        this.health--;
+      } else {
+        score += 100;
+        super.remove();
+      }
+    }
   }
   draw(context) {
     this.drawable.drawAtSizeColor(
@@ -289,7 +344,7 @@ class Asteroid extends Particle {
       this.face,
       this.position,
       "bold " + this.faceSize + "px Arial",
-      bgColor,
+      bgColor(),
       "center"
     );
   }
@@ -317,8 +372,51 @@ class Spawner extends GameComponent {
   }
 }
 
+class CollisionHandler extends GameComponent {
+  constructor() {
+    super();
+  }
+  update() {
+    this.bulletsAsteroids();
+    this.playerAsteroids();
+  }
+  bulletsAsteroids() {
+    for (let b = bullets.particles.length - 1; b >= 0; b--) {
+      for (let a = asteroids.particles.length - 1; a >= 0; a--) {
+        const bullet = bullets.particles[b];
+        const asteroid = asteroids.particles[a];
+        if (asteroid.collisionRect.contains(bullet.position)) {
+          bullet.remove();
+          asteroid.getHit();
+        }
+      }
+    }
+  }
+  playerAsteroids() {
+    for (let a = asteroids.particles.length - 1; a >= 0; a--) {
+      const asteroid = asteroids.particles[a];
+      if (Rectangle.intersects(player.collisionRect, asteroid.collisionRect)) {
+        player.getHit();
+      }
+    }
+  }
+}
+
+class Scoring extends GameComponent {
+  constructor() {
+    super();
+  }
+  update() {
+    this.updateScoreDisplay();
+  }
+  updateScoreDisplay() {
+    scoreLabel.text = score;
+    scoreLabel.color = mainColor();
+  }
+}
+
 const initialize = () => {
-  gameComponents.push(stars);
+  gameComponents.push(particles);
   gameComponents.push(bullets);
   gameComponents.push(asteroids);
   player = new Player();
@@ -328,18 +426,24 @@ const initialize = () => {
     score,
     new Point(20, 20),
     "bold 26px Arial",
-    mainColor,
+    mainColor(),
     "left"
   );
   gameComponents.push(scoreLabel);
+  scoring = new Scoring();
+  gameComponents.push(scoring);
   lifeDisplay = new PlayerLifeDisplay();
   gameComponents.push(lifeDisplay);
-  starSpawner = new Spawner(2, 1, 2, () => stars.particles.push(new Star()));
+  starSpawner = new Spawner(2, 1, 2, () =>
+    particles.particles.push(new Star())
+  );
   gameComponents.push(starSpawner);
   asteroidSpawner = new Spawner(40, 1, 1, () =>
     asteroids.particles.push(new Asteroid())
   );
   gameComponents.push(asteroidSpawner);
+  collisions = new CollisionHandler();
+  gameComponents.push(collisions);
 
   isRunning = true;
   requestAnimationFrame(gameLoop);
@@ -382,7 +486,7 @@ const clearContext = () => {
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.beginPath();
   context.rect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = bgColor;
+  context.fillStyle = bgColor();
   context.fill();
 };
 
@@ -426,6 +530,14 @@ const shadeColor = (color, percent) => {
   var BB = B.toString(16).length == 1 ? "0" + B.toString(16) : B.toString(16);
 
   return "#" + RR + GG + BB;
+};
+
+const mainColor = () => {
+  return shadeColor("#00acff", 0);
+};
+
+const bgColor = () => {
+  return shadeColor("#05364e", 0);
 };
 
 initialize();

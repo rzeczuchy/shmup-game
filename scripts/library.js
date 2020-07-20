@@ -116,14 +116,14 @@ class Circle extends Drawable {
   constructor(position, radius, color) {
     super();
     this.position = position;
-    this.radius = radius;
+    this.size = new Point(radius, radius);
     this.color = color;
   }
   draw(context) {
     drawAt(context, this.position);
   }
   drawAt(context, position) {
-    this.drawAtSize(context, position, this.radius);
+    this.drawAtSize(context, position, this.size.x / 2);
   }
   drawAtSize(context, position, size) {
     this.drawAtSizeColor(context, position, radius, this.color);
@@ -134,16 +134,16 @@ class Circle extends Drawable {
     context.arc(position.x, position.y, size.x / 2, 0, 2 * Math.PI);
     context.fill();
   }
-  contains(circ, point) {
+  contains(point) {
     return (
       calculateDistance(this.position.x, this.position.y, point.x, point.y) <=
-      circ.radius
+      this.size.x / 2
     );
   }
   static intersects(circA, circB) {
     return (
       Point.distance(circA.position, circB.position) <=
-      circA.radius + circB.radius
+      circA.size.x / 2 + circB.size.x / 2
     );
   }
 }
@@ -259,6 +259,12 @@ class Particle extends DrawableComponent {
   }
   update() {
     this.life++;
+  }
+  remove() {
+    this.life = this.lifespan;
+  }
+  isDead() {
+    return this.life >= this.lifespan;
   }
 }
 
