@@ -5,6 +5,7 @@ context.imageSmoothingEnabled = false;
 
 let isRunning;
 const mainColor = "#00acff";
+const bgColor = "#05364e";
 const gameComponents = [];
 const input = new Input();
 const stars = new ParticleEngine();
@@ -227,6 +228,8 @@ class Asteroid extends Particle {
     super(position, size, drawable, lifespan);
     this.speed = speed;
     this.color = color;
+    this.face = "'w'";
+    this.faceSize = this.size.x * 0.5;
   }
   update() {
     super.update();
@@ -238,6 +241,13 @@ class Asteroid extends Particle {
       this.position,
       this.size,
       this.color
+    );
+    drawString(
+      this.face,
+      this.position,
+      "bold " + this.faceSize + "px Arial",
+      bgColor,
+      "center"
     );
   }
 }
@@ -324,7 +334,6 @@ const removeDead = (array) => {
 };
 
 const clearContext = () => {
-  const bgColor = shadeColor(mainColor, -50);
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.beginPath();
   context.rect(0, 0, canvas.width, canvas.height);
@@ -342,6 +351,14 @@ const randomNumber = (min, max) => {
 
 const randomFloat = (min, max) => {
   return Math.random() * (+max + 1 - +min) + +min;
+};
+
+const drawString = (text, position, font, color, align) => {
+  context.font = font;
+  context.fillStyle = color;
+  context.textAlign = align;
+  context.textBaseline = "top";
+  context.fillText(text, position.x, position.y);
 };
 
 // shadeColor function is from this answer on StackOverflow:
