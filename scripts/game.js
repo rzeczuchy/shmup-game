@@ -7,12 +7,14 @@ let isRunning;
 const mainColor = "#00acff";
 const gameComponents = [];
 const input = new Input();
-const particleEngine = new ParticleEngine();
+const stars = new ParticleEngine();
 const bullets = new ParticleEngine();
+const asteroids = new ParticleEngine();
 let player;
 let score;
 let scoreLabel;
 let starSpawner;
+let asteroidSpawner;
 
 // defining assets
 
@@ -214,19 +216,46 @@ class Star extends Particle {
   }
 }
 
-class StarSpawner extends GameComponent {
+class Asteroid extends Particle {
   constructor() {
+    const speed = randomFloat(1, 3);
+    const size = new Point(randomNumber(20, 40), randomNumber(20, 40));
+    const position = new Point(randomNumber(0, canvas.width), -size.y);
+    const color = mainColor;
+    const drawable = new Circle(position, size, color);
+    const lifespan = 340 / speed;
+    super(position, size, drawable, lifespan);
+    this.speed = speed;
+    this.color = color;
+  }
+  update() {
+    super.update();
+    this.position.y += this.speed;
+  }
+  draw(context) {
+    this.drawable.drawAtSizeColor(
+      context,
+      this.position,
+      this.size,
+      this.color
+    );
+  }
+}
+
+class Spawner extends GameComponent {
+  constructor(spawnDelay, minSpawned, maxSpawned, spawn) {
     super();
-    this.spawnDelay = 2;
+    this.spawnDelay = spawnDelay;
     this.time = 0;
-    this.minSpawned = 1;
-    this.maxSpawned = 2;
+    this.minSpawned = minSpawned;
+    this.maxSpawned = maxSpawned;
+    this.spawn = spawn;
   }
   update() {
     if (this.time >= this.spawnDelay) {
       const spawned = randomNumber(this.minSpawned, this.maxSpawned);
       for (let i = 0; i < spawned; i++) {
-        particleEngine.particles.push(new Star());
+        this.spawn();
       }
       this.time = 0;
     } else {
@@ -236,8 +265,9 @@ class StarSpawner extends GameComponent {
 }
 
 const initialize = () => {
-  gameComponents.push(particleEngine);
+  gameComponents.push(stars);
   gameComponents.push(bullets);
+  gameComponents.push(asteroids);
   player = new Player();
   gameComponents.push(player);
   score = 0;
@@ -249,8 +279,12 @@ const initialize = () => {
     "left"
   );
   gameComponents.push(scoreLabel);
-  starSpawner = new StarSpawner();
+  starSpawner = new Spawner(2, 1, 2, () => stars.particles.push(new Star()));
   gameComponents.push(starSpawner);
+  asteroidSpawner = new Spawner(40, 1, 1, () =>
+    asteroids.particles.push(new Asteroid())
+  );
+  gameComponents.push(asteroidSpawner);
 
   isRunning = true;
   requestAnimationFrame(gameLoop);
@@ -304,6 +338,10 @@ const clamp = (number, min, max) => {
 
 const randomNumber = (min, max) => {
   return Math.floor(Math.random() * (+max + 1 - +min) + +min);
+};
+
+const randomFloat = (min, max) => {
+  return Math.random() * (+max + 1 - +min) + +min;
 };
 
 // shadeColor function is from this answer on StackOverflow:

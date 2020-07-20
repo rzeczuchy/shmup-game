@@ -125,13 +125,13 @@ class Circle extends Drawable {
   drawAt(context, position) {
     this.drawAtSize(context, position, this.radius);
   }
-  drawAtSize(context, position, radius) {
+  drawAtSize(context, position, size) {
     this.drawAtSizeColor(context, position, radius, this.color);
   }
-  drawAtSizeColor(context, position, radius) {
+  drawAtSizeColor(context, position, size, color) {
     context.beginPath();
     context.fillStyle = color;
-    context.arc(position.x, position.y, radius, 0, 2 * Math.PI);
+    context.arc(position.x, position.y, size.x / 2, 0, 2 * Math.PI);
     context.fill();
   }
   contains(circ, point) {
