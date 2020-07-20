@@ -12,6 +12,7 @@ const stars = new ParticleEngine();
 const bullets = new ParticleEngine();
 const asteroids = new ParticleEngine();
 let player;
+let lifeDisplay;
 let score;
 let scoreLabel;
 let starSpawner;
@@ -37,6 +38,7 @@ class Player extends DrawableComponent {
     this.rollLoss = 0.6;
     this.fireRate = 0.6;
     this.fireCooldown = 0;
+    this.lives = 3;
   }
   update() {
     this.handleInput();
@@ -161,6 +163,24 @@ class Player extends DrawableComponent {
       new Point(this.getApparentWidth(), this.size.y),
       this.getApparentColor()
     );
+  }
+}
+
+class PlayerLifeDisplay extends GameComponent {
+  constructor() {
+    super();
+    const position = new Point(20, 50);
+    this.position = position;
+    this.lifeSymbol = new Triangle(position, new Point(0, 0), mainColor);
+  }
+  draw(context) {
+    for (let i = 0; i < player.lives; i++) {
+      this.lifeSymbol.drawAtSize(
+        context,
+        new Point(this.position.x + i * 20, this.position.y),
+        new Point(16, 16)
+      );
+    }
   }
 }
 
@@ -289,6 +309,8 @@ const initialize = () => {
     "left"
   );
   gameComponents.push(scoreLabel);
+  lifeDisplay = new PlayerLifeDisplay();
+  gameComponents.push(lifeDisplay);
   starSpawner = new Spawner(2, 1, 2, () => stars.particles.push(new Star()));
   gameComponents.push(starSpawner);
   asteroidSpawner = new Spawner(40, 1, 1, () =>
