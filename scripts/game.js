@@ -8,14 +8,14 @@ const gameComponents = [];
 const input = new Input();
 const particles = new ParticleEngine();
 const bullets = new ParticleEngine();
-const asteroids = new ParticleEngine();
+const invaders = new ParticleEngine();
 let player;
 let lifeDisplay;
 let score;
 let scoreLabel;
 let scoring;
 let starSpawner;
-let asteroidSpawner;
+let invaderSpawner;
 let collisions;
 
 // defining assets
@@ -23,7 +23,7 @@ let collisions;
 // defining custom components
 class Player extends DrawableComponent {
   constructor() {
-    const position = new Point(104, 240);
+    const position = new Point(104, 300);
     const size = new Point(32, 32);
     const color = mainColor;
     const drawable = new Triangle(position, size, color);
@@ -31,16 +31,17 @@ class Player extends DrawableComponent {
     this.color = color;
     this.damping = 0.95;
     this.speed = 0.4;
-    this.delta = new Point(0, -2);
+    this.delta = new Point(0, 0);
     this.roll = 0;
     this.maxRoll = 14;
     this.rollGain = 1.2;
     this.rollLoss = 0.6;
     this.fireRate = 0.6;
     this.fireCooldown = 0;
+    this.startingPosition = new Point(position.x, position.y);
     this.lives = 3;
-    this.hitDelay = 10;
-    this.hitCooldown = 10;
+    this.hitDelay = 15;
+    this.hitCooldown = this.hitDelay;
     this.collisionRect = new Rectangle(
       new Point(position.x - size.x / 2, position.y - size.y / 2),
       new Point(size.x, size.y - 12),
@@ -48,17 +49,19 @@ class Player extends DrawableComponent {
     );
   }
   update() {
-    this.handleInput();
-    this.position.x += this.delta.x;
-    this.position.y += this.delta.y;
-    this.clampPosition();
-    this.delta.x *= this.damping;
-    this.delta.y *= this.damping;
-    this.floorDelta();
-    this.reduceRoll();
-    this.coolDownGun();
-    this.coolDownHit();
-    this.setCollisionRectPosition();
+    if (!this.isDead) {
+      this.handleInput();
+      this.position.x += this.delta.x;
+      this.position.y += this.delta.y;
+      this.clampPosition();
+      this.delta.x *= this.damping;
+      this.delta.y *= this.damping;
+      this.floorDelta();
+      this.reduceRoll();
+      this.coolDownGun();
+      this.coolDownHit();
+      this.setCollisionRectPosition();
+    }
   }
   setCollisionRectPosition() {
     const shipCenter = new Point(
@@ -94,15 +97,11 @@ class Player extends DrawableComponent {
   }
   getApparentColor() {
     if (this.hitCooldown > 0) {
-      return this.blink();
+      return blink();
     }
     const flipLightDir = false;
     const rollFactor = (flipLightDir ? this.roll : -this.roll) * 2.3;
     return shadeColor(mainColor(), rollFactor);
-  }
-  blink() {
-    const blink = 40;
-    return shadeColor(mainColor(), randomNumber(-blink, blink));
   }
   floorDelta() {
     let objectiveDeltaX = Math.sqrt(Math.pow(this.delta.x * 100, 2));
@@ -131,6 +130,12 @@ class Player extends DrawableComponent {
     } else if (this.position.y > bottomBound) {
       this.delta.y -= pushOffForce;
     }
+  }
+  resetDelta() {
+    this.delta = new Point(0, 0);
+  }
+  resetPosition() {
+    this.position = new Point(this.startingPosition.x, this.startingPosition.y);
   }
   handleInput() {
     if (input.isKeyPressed(input.keys.UP)) {
@@ -197,11 +202,17 @@ class Player extends DrawableComponent {
     }
   }
   loseLife() {
+    new Explosion(this.position, this.delta, 100);
+    this.resetPosition();
+    this.resetDelta();
     if (this.lives > 0) {
       this.lives--;
     } else {
-      console.log("game lost!");
+      this.die();
     }
+  }
+  die() {
+    this.isDead = true;
   }
   coolDownHit() {
     if (this.hitCooldown > 0) {
@@ -209,12 +220,14 @@ class Player extends DrawableComponent {
     }
   }
   draw(context) {
-    this.drawable.drawAtSizeColor(
-      context,
-      this.position,
-      new Point(this.getApparentWidth(), this.size.y),
-      this.getApparentColor()
-    );
+    if (!this.isDead) {
+      this.drawable.drawAtSizeColor(
+        context,
+        this.position,
+        new Point(this.getApparentWidth(), this.size.y),
+        this.getApparentColor()
+      );
+    }
   }
 }
 
@@ -292,7 +305,7 @@ class Star extends Particle {
   }
 }
 
-class Asteroid extends Particle {
+class Invader extends Particle {
   constructor() {
     const speed = randomFloat(1, 2) + score * 0.0001;
     const dimension = randomNumber(20, 50);
@@ -306,6 +319,7 @@ class Asteroid extends Particle {
     const drawable = new Circle(position, size, color);
     const lifespan = 340 / speed;
     super(position, size, drawable, lifespan);
+    this.direction = new Point(0, 1);
     this.speed = speed;
     this.color = color;
     this.face = "'w'";
@@ -319,8 +333,12 @@ class Asteroid extends Particle {
   }
   update() {
     super.update();
-    this.position.y += this.speed;
-    this.collisionRect.position.y += this.speed;
+    const xMovement = this.direction.x * this.speed;
+    const yMovement = this.direction.y * this.speed;
+    this.position.x += xMovement;
+    this.collisionRect.position.x += xMovement;
+    this.position.y += yMovement;
+    this.collisionRect.position.y += yMovement;
   }
   getHit() {
     if (!this.isDead()) {
@@ -328,6 +346,7 @@ class Asteroid extends Particle {
         scoring.increaseScore(10);
         this.health--;
       } else {
+        new Explosion(this.position, new Point(0, -1), 25);
         scoring.increaseScore(100);
         super.remove();
       }
@@ -346,6 +365,59 @@ class Asteroid extends Particle {
       "bold " + this.faceSize + "px Arial",
       bgColor(),
       "center"
+    );
+  }
+}
+
+class Explosion {
+  constructor(position, direction, density) {
+    this.position = new Point(position.x, position.y);
+    this.direction = new Point(direction.x, direction.y);
+    this.direction.normalize();
+    this.spawnedParticles = density;
+    this.createParticles();
+  }
+  createParticles() {
+    for (let i = 0; i < this.spawnedParticles; i++) {
+      const direction = new Point(randomNumber(-10, 10), randomNumber(-10, 10));
+      direction.x += this.direction.x * 10;
+      direction.y += this.direction.y * 10;
+      direction.normalize();
+      if (direction.x != 0 || direction.y != 0) {
+        const position = new Point(this.position.x, this.position.y);
+        const newParticle = new ExplosionParticle(position, direction);
+        particles.particles.push(newParticle);
+      }
+    }
+  }
+}
+
+class ExplosionParticle extends Particle {
+  constructor(position, direction) {
+    const dimension = randomNumber(3, 5);
+    const speed = randomFloat(1, 5);
+    const size = new Point(dimension, dimension);
+    const brightness = randomNumber(0, 100);
+    const color = shadeColor(mainColor(), brightness);
+    const drawable = new Rectangle(position, size, color);
+    const lifespan = 100;
+    super(position, size, drawable, lifespan);
+    this.direction = direction;
+    this.direction.normalize();
+    this.speed = speed;
+    this.color = color;
+  }
+  update() {
+    super.update();
+    this.position.x += this.speed * this.direction.x;
+    this.position.y += this.speed * this.direction.y;
+  }
+  draw(context) {
+    this.drawable.drawAtSizeColor(
+      context,
+      this.position,
+      this.size,
+      this.color
     );
   }
 }
@@ -377,25 +449,26 @@ class CollisionHandler extends GameComponent {
     super();
   }
   update() {
-    this.bulletsAsteroids();
-    this.playerAsteroids();
+    this.bulletsInvaders();
+    this.playerInvaders();
   }
-  bulletsAsteroids() {
+  bulletsInvaders() {
     for (let b = bullets.particles.length - 1; b >= 0; b--) {
-      for (let a = asteroids.particles.length - 1; a >= 0; a--) {
+      for (let a = invaders.particles.length - 1; a >= 0; a--) {
         const bullet = bullets.particles[b];
-        const asteroid = asteroids.particles[a];
-        if (asteroid.collisionRect.contains(bullet.position)) {
+        const invader = invaders.particles[a];
+        if (invader.collisionRect.contains(bullet.position)) {
+          new Explosion(bullet.position, bullet.direction, 5);
           bullet.remove();
-          asteroid.getHit();
+          invader.getHit();
         }
       }
     }
   }
-  playerAsteroids() {
-    for (let a = asteroids.particles.length - 1; a >= 0; a--) {
-      const asteroid = asteroids.particles[a];
-      if (Rectangle.intersects(player.collisionRect, asteroid.collisionRect)) {
+  playerInvaders() {
+    for (let a = invaders.particles.length - 1; a >= 0; a--) {
+      const invader = invaders.particles[a];
+      if (Rectangle.intersects(player.collisionRect, invader.collisionRect)) {
         player.getHit();
       }
     }
@@ -421,7 +494,7 @@ class Scoring extends GameComponent {
 const initialize = () => {
   gameComponents.push(particles);
   gameComponents.push(bullets);
-  gameComponents.push(asteroids);
+  gameComponents.push(invaders);
   player = new Player();
   gameComponents.push(player);
   score = 0;
@@ -441,10 +514,10 @@ const initialize = () => {
     particles.particles.push(new Star())
   );
   gameComponents.push(starSpawner);
-  asteroidSpawner = new Spawner(40, 1, 1, () =>
-    asteroids.particles.push(new Asteroid())
+  invaderSpawner = new Spawner(40, 1, 1, () =>
+    invaders.particles.push(new Invader())
   );
-  gameComponents.push(asteroidSpawner);
+  gameComponents.push(invaderSpawner);
   collisions = new CollisionHandler();
   gameComponents.push(collisions);
 
@@ -541,6 +614,11 @@ const mainColor = () => {
 
 const bgColor = () => {
   return shadeColor("#05364e", 0);
+};
+
+const blink = (color) => {
+  const blink = 40;
+  return shadeColor(mainColor(), randomNumber(-blink, blink));
 };
 
 initialize();

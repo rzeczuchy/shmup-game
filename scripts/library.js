@@ -36,6 +36,13 @@ class Point extends Drawable {
     let yDist = Math.pow(a.y - b.y, 2);
     return Math.sqrt(xDist + yDist);
   }
+  normalize() {
+    const magnitude = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+    if (magnitude != 0) {
+      this.x = this.x / magnitude;
+      this.y = this.y / magnitude;
+    }
+  }
 }
 
 class Rectangle extends Drawable {
