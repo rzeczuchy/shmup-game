@@ -24,6 +24,8 @@ let invaderSpawner;
 let collisions;
 
 // defining assets
+const explosionSound = "assets/explosion.ogg";
+const laserSound = "assets/laser.ogg";
 
 // defining custom components
 class Player extends DrawableComponent {
@@ -170,6 +172,8 @@ class Player extends DrawableComponent {
     }
   }
   shoot() {
+    const sound = new Audio(laserSound);
+    sound.play();
     const bulletSize = new Point(3, 20);
 
     bullets.particles.push(
@@ -207,6 +211,8 @@ class Player extends DrawableComponent {
     }
   }
   loseLife() {
+    const sound = new Audio(explosionSound);
+    sound.play();
     new Explosion(this.position, this.delta, 100);
     this.resetPosition();
     this.resetDelta();
