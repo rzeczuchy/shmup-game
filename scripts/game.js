@@ -3,12 +3,17 @@ const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 context.imageSmoothingEnabled = false;
 
+const fontStyle = "bold";
+const fontFamily = "Arial";
+const font = (size) => {
+  return fontStyle + " " + size + "px " + fontFamily;
+};
 let isRunning;
-const gameComponents = [];
+let gameComponents;
 const input = new Input();
-const particles = new ParticleEngine();
-const bullets = new ParticleEngine();
-const invaders = new ParticleEngine();
+let particles;
+let bullets;
+let invaders;
 let player;
 let lifeDisplay;
 let score;
@@ -213,6 +218,7 @@ class Player extends DrawableComponent {
   }
   die() {
     this.isDead = true;
+    loseGame();
   }
   coolDownHit() {
     if (this.hitCooldown > 0) {
@@ -362,7 +368,7 @@ class Invader extends Particle {
     drawString(
       this.face,
       this.position,
-      "bold " + this.faceSize + "px Arial",
+      font(this.faceSize),
       bgColor(),
       "center"
     );
@@ -491,7 +497,42 @@ class Scoring extends GameComponent {
   }
 }
 
+class GameOverScreen extends GameComponent {
+  constructor() {
+    super();
+  }
+  update() {
+    if (input.isKeyPressed(input.keys.SPACE)) {
+      this.restartGame();
+    }
+  }
+  restartGame() {
+    this.isDead = true;
+    initialize();
+  }
+  draw() {
+    drawString(
+      "GAME OVER",
+      new Point(120, 120),
+      font(20),
+      mainColor(),
+      "center"
+    );
+    drawString(
+      "Press SPACE to restart",
+      new Point(120, 150),
+      font(16),
+      blink(mainColor()),
+      "center"
+    );
+  }
+}
+
 const initialize = () => {
+  gameComponents = [];
+  particles = new ParticleEngine();
+  bullets = new ParticleEngine();
+  invaders = new ParticleEngine();
   gameComponents.push(particles);
   gameComponents.push(bullets);
   gameComponents.push(invaders);
@@ -501,7 +542,7 @@ const initialize = () => {
   scoreLabel = new Label(
     score,
     new Point(20, 20),
-    "bold 26px Arial",
+    font(20),
     mainColor(),
     "left"
   );
@@ -522,7 +563,11 @@ const initialize = () => {
   gameComponents.push(collisions);
 
   isRunning = true;
-  requestAnimationFrame(gameLoop);
+};
+
+const loseGame = () => {
+  gameComponents.push(new GameOverScreen());
+  invaderSpawner.isDead = true;
 };
 
 const gameLoop = () => {
@@ -622,3 +667,4 @@ const blink = (color) => {
 };
 
 initialize();
+requestAnimationFrame(gameLoop);
