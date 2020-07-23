@@ -3,6 +3,15 @@ const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 context.imageSmoothingEnabled = false;
 
+window.onload = () => {
+  drawSplashScreen();
+};
+
+canvas.onclick = () => {
+  initialize();
+  requestAnimationFrame(gameLoop);
+};
+
 const fontStyle = "bold";
 const fontFamily = "Arial";
 const font = (size) => {
@@ -27,6 +36,7 @@ let collisions;
 const explosionSound = "assets/explosion.ogg";
 const laserSound = "assets/laser.ogg";
 const startSound = "assets/start.ogg";
+const ambientSound = "assets/ambience.ogg";
 
 // defining custom components
 class Player extends DrawableComponent {
@@ -515,8 +525,6 @@ class GameOverScreen extends GameComponent {
   }
   restartGame() {
     this.isDead = true;
-    const sound = new Audio(startSound);
-    sound.play();
     initialize();
   }
   draw() {
@@ -570,6 +578,12 @@ const initialize = () => {
   gameComponents.push(invaderSpawner);
   collisions = new CollisionHandler();
   gameComponents.push(collisions);
+
+  const sound = new Audio(startSound);
+  sound.play();
+  const ambience = new Audio(ambientSound);
+  ambience.loop = true;
+  ambience.play();
 
   isRunning = true;
 };
@@ -640,6 +654,24 @@ const drawString = (text, position, font, color, align) => {
   context.fillText(text, position.x, position.y);
 };
 
+const drawSplashScreen = () => {
+  clearContext();
+  drawString(
+    "in('w')aders",
+    new Point(120, 120),
+    font(20),
+    mainColor(),
+    "center"
+  );
+  drawString(
+    "Click game screen to start",
+    new Point(120, 160),
+    font(16),
+    mainColor(),
+    "center"
+  );
+};
+
 // shadeColor function is from this answer on StackOverflow:
 // https://stackoverflow.com/a/13532993/13352934
 const shadeColor = (color, percent) => {
@@ -674,6 +706,3 @@ const blink = (color) => {
   const blink = 40;
   return shadeColor(mainColor(), randomNumber(-blink, blink));
 };
-
-initialize();
-requestAnimationFrame(gameLoop);
