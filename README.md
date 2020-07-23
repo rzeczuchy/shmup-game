@@ -1,2 +1,3 @@
 # shmup-game
-A repository for an untitled space shooter game.
+
+Repository for in('w')aders - a space shooter minigame in pure JS.
