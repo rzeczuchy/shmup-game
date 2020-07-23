@@ -26,6 +26,7 @@ let collisions;
 // defining assets
 const explosionSound = "assets/explosion.ogg";
 const laserSound = "assets/laser.ogg";
+const startSound = "assets/start.ogg";
 
 // defining custom components
 class Player extends DrawableComponent {
@@ -514,6 +515,8 @@ class GameOverScreen extends GameComponent {
   }
   restartGame() {
     this.isDead = true;
+    const sound = new Audio(startSound);
+    sound.play();
     initialize();
   }
   draw() {
@@ -526,7 +529,7 @@ class GameOverScreen extends GameComponent {
     );
     drawString(
       "Press SPACE to restart",
-      new Point(120, 150),
+      new Point(120, 160),
       font(16),
       blink(mainColor()),
       "center"
