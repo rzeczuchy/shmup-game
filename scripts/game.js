@@ -8,8 +8,10 @@ window.onload = () => {
 };
 
 canvas.onclick = () => {
-  initialize();
-  requestAnimationFrame(gameLoop);
+  if (!isRunning) {
+    initialize();
+    requestAnimationFrame(gameLoop);
+  }
 };
 
 const fontStyle = "bold";
@@ -34,6 +36,7 @@ let collisions;
 
 // defining assets
 const explosionSound = "assets/explosion.ogg";
+const alienExplosionSound = "assets/explosion_alien.ogg";
 const laserSound = "assets/laser.ogg";
 const startSound = "assets/start.ogg";
 const ambientSound = "assets/ambience.ogg";
@@ -369,6 +372,8 @@ class Invader extends Particle {
         scoring.increaseScore(10);
         this.health--;
       } else {
+        const sound = new Audio(alienExplosionSound);
+        sound.play();
         new Explosion(this.position, new Point(0, -1), 25);
         scoring.increaseScore(100);
         super.remove();
