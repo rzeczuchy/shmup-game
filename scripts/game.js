@@ -669,6 +669,13 @@ const drawSplashScreen = () => {
     "center"
   );
   drawString(
+    "rzeczuchy (2020)",
+    new Point(230, 300),
+    font(12),
+    mainColor(),
+    "right"
+  );
+  drawString(
     "Click game screen to start",
     new Point(120, 160),
     font(16),
