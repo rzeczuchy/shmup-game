@@ -28,6 +28,7 @@ let invaders;
 let player;
 let lifeDisplay;
 let score;
+let speedLevel;
 let scoreLabel;
 let scoring;
 let starSpawner;
@@ -61,6 +62,7 @@ class Player extends DrawableComponent {
     this.fireCooldown = 0;
     this.startingPosition = new Point(position.x, position.y);
     this.lives = 3;
+    this.maxLives = 7;
     this.hitDelay = 15;
     this.hitCooldown = this.hitDelay;
     this.collisionRect = new Rectangle(
@@ -236,6 +238,11 @@ class Player extends DrawableComponent {
       this.die();
     }
   }
+  addLife() {
+    if (this.maxLives < 10) {
+      this.lives++;
+    }
+  }
   die() {
     this.isDead = true;
     loseGame();
@@ -306,7 +313,7 @@ class Bullet extends Particle {
 class Star extends Particle {
   constructor() {
     const thickness = randomNumber(1, 2);
-    const speed = randomFloat(7, 20) + score * 0.0001;
+    const speed = randomFloat(7, 20) + speedFactor();
     const size = new Point(thickness, speed);
     const position = new Point(randomNumber(0, canvas.width), -size.y);
     const brightness = randomNumber(0, 100);
@@ -333,8 +340,8 @@ class Star extends Particle {
 
 class Invader extends Particle {
   constructor() {
-    const speed = randomFloat(1, 2) + score * 0.0001;
-    const dimension = randomNumber(20, 50);
+    const speed = randomFloat(0.1, 1) + speedFactor();
+    const dimension = randomNumber(35, 50);
     const size = new Point(dimension, dimension);
     const margin = dimension;
     const position = new Point(
@@ -348,8 +355,7 @@ class Invader extends Particle {
     this.direction = new Point(0, 1);
     this.speed = speed;
     this.color = color;
-    this.face = "'w'";
-    this.faceSize = this.size.x * 0.5;
+    this.faceSize = this.size.x * 0.4;
     this.health = 5;
     this.collisionRect = new Rectangle(
       new Point(position.x - size.x / 2, position.y - size.y / 2),
@@ -380,6 +386,20 @@ class Invader extends Particle {
       }
     }
   }
+  face() {
+    switch (speedLevel) {
+      case 1:
+        return "'w'";
+      case 2:
+        return ">w<";
+      case 3:
+        return "°w°";
+      case 4:
+        return "OwO";
+      default:
+        return "*w*";
+    }
+  }
   draw(context) {
     this.drawable.drawAtSizeColor(
       context,
@@ -388,7 +408,7 @@ class Invader extends Particle {
       this.color
     );
     drawString(
-      this.face,
+      this.face(),
       this.position,
       font(this.faceSize),
       bgColor(),
@@ -512,6 +532,13 @@ class Scoring extends GameComponent {
   }
   increaseScore(value) {
     score += value;
+    if (score > speedLevel * 10000) {
+      speedLevel++;
+      player.addLife();
+      console.log("level up!!");
+      const sound = new Audio(startSound);
+      sound.play();
+    }
   }
   updateScoreDisplay() {
     scoreLabel.text = score;
@@ -561,6 +588,7 @@ const initialize = () => {
   player = new Player();
   gameComponents.push(player);
   score = 0;
+  speedLevel = 1;
   scoreLabel = new Label(
     score,
     new Point(20, 20),
@@ -682,6 +710,10 @@ const drawSplashScreen = () => {
     mainColor(),
     "center"
   );
+};
+
+const speedFactor = () => {
+  return score * 0.0001 + speedLevel;
 };
 
 // shadeColor function is from this answer on StackOverflow:
