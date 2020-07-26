@@ -16,9 +16,6 @@ canvas.onclick = () => {
 
 const fontStyle = "bold";
 const fontFamily = "Arial";
-const font = (size) => {
-  return fontStyle + " " + size + "px " + fontFamily;
-};
 let isRunning;
 let gameComponents;
 const input = new Input();
@@ -350,7 +347,7 @@ class Invader extends Particle {
     );
     const color = mainColor();
     const drawable = new Circle(position, size, color);
-    const lifespan = 340 / speed;
+    const lifespan = 400 / speed;
     super(position, size, drawable, lifespan);
     this.direction = new Point(0, 1);
     this.speed = speed;
@@ -739,14 +736,31 @@ const shadeColor = (color, percent) => {
 };
 
 const mainColor = () => {
-  return shadeColor("#00acff", 0);
+  switch (speedLevel) {
+    case undefined:
+    case 0:
+    case 1:
+      return "#00acff";
+    case 2:
+      return "#c900ff";
+    case 3:
+      return "#00dba9";
+    case 4:
+      return "#ffce00";
+    default:
+      return "#ff0066";
+  }
 };
 
 const bgColor = () => {
-  return shadeColor("#05364e", 0);
+  return shadeColor(mainColor(), -60);
 };
 
 const blink = (color) => {
   const blink = 40;
   return shadeColor(mainColor(), randomNumber(-blink, blink));
+};
+
+const font = (size) => {
+  return fontStyle + " " + size + "px " + fontFamily;
 };
